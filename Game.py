@@ -1030,13 +1030,18 @@ class Game:
                 if self.buildings[1] < self.build_active[1]:
                     self.build_active[1] -= 1
                     self.modremove('w')
-                    
+            while self.iron < 0 and self.buildings[2] > 0:
+                self.buildings[2] -= 1
+                self.iron += 0.1
+                if self.buildings[2] < self.build_active[2]:
+                    self.build_active[2] -= 1
+                    self.modremove('i')
             while self.wood < 0 and self.buildings[0] > 0: # Removes granaries until upkeep is affordable, or no more can be removed
                 self.buildings[0] -= 1
                 self.wood += 1
                 self.iron += 0.2
 
-            self.building_upkeep[1] = 0
+            self.building_upkeep[1],self.building_upkeep[2] = 0,0
             
             #self.iron = self.iron-int(round(self.building_upkeep[2],1))
             
