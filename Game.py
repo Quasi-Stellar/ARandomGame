@@ -11,7 +11,7 @@ class Game:
         root.resizable(width=False, height=False)
         self.frame = Frame(master=root)
         self.frame.pack_propagate(0)
-        self.frame.grid()
+        self.frame.grid()        
         self.grid = [[],[],[],[],[],[],[],[],[],[]]
         self.bgrid = [[],[],[],[],[],[],[],[],[],[]]
         self.reveal_grid = [[],[],[],[],[],[],[],[],[],[]]
@@ -158,7 +158,7 @@ class Game:
 
         ###This next section looks bulky, but "for" loops don't pass the correct argument (making all of them pass the last iteration's value), and binding is dangerous for if I want to add buttons before them
           ##I already bound the grid, which only works because those are the first buttons created; leaving these unbound allows more flexibility in readjusting position.
-        self.build_list = []
+        self.build_list = [] # building buttons
         self.build_list.append(Button(self.frame,text='',command=lambda:self.activebuild(0)))
         self.build_list.append(Button(self.frame,text='',command=lambda:self.activebuild(1)))
         self.build_list.append(Button(self.frame,text='',command=lambda:self.activebuild(2)))
@@ -170,8 +170,10 @@ class Game:
         self.build_all = []
         self.build_workers = []
         self.build_error = Label(self.frame,text='')
-        self.blist_first = 0
-            
+        self.blist_first = 0 # index of first building on the displayed building list
+        self.building_upkeep = [0,0,0,0] # [Food, Wood, Iron, Gold] upkeep costs of buildings
+        self.upkeep_counter = 0
+        
     def save(self):
         self.savescreen = Tk()
         self.savescreen.title('Save')
@@ -545,21 +547,21 @@ class Game:
         show = False
         if building == 'Granary':
             self.build_info_desc.configure(text='Allows food to be kept\nlonger.')
-            self.build_info_cost_1.configure(text='Wood: '+str(300+50*self.buildings[0]))
-            self.build_info_cost_2.configure(text='Iron: '+str(150+50*self.buildings[0]))
-            self.build_info_cost_3.configure(text='Gold: '+str(int(50*(self.buildings[0]+1)*(1.04**(0.01*self.turn)))))
+            self.build_info_cost_1.configure(text='Wood: '+str(25))
+            self.build_info_cost_2.configure(text='Iron: '+str(50))
+            self.build_info_cost_3.configure(text='Gold: '+str(int(25*(1.04**(0.01*self.turn)))))
             show = True
         elif building == 'Sawmill':
             self.build_info_desc.configure(text='Allows more wood to be\ncollected on one tile.')
-            self.build_info_cost_1.configure(text='Wood: '+str(100+50*self.buildings[1]))
-            self.build_info_cost_2.configure(text='Iron: '+str(150+50*self.buildings[1]))
-            self.build_info_cost_3.configure(text='Gold: '+str(int(50*(self.buildings[1]+1)*(1.04**(0.01*self.turn)))))
+            self.build_info_cost_1.configure(text='Wood: '+str(25))
+            self.build_info_cost_2.configure(text='Iron: '+str(50))
+            self.build_info_cost_3.configure(text='Gold: '+str(int(10*(1.04**(0.01*self.turn)))))
             show = True
         elif building == 'Mine':
             self.build_info_desc.configure(text='Allows more iron to be\ncollected on one tile.')
-            self.build_info_cost_1.configure(text='Wood: '+str(400+50*self.buildings[2]))
-            self.build_info_cost_2.configure(text='Iron: '+str(200+50*self.buildings[2]))
-            self.build_info_cost_3.configure(text='Gold: '+str(int(50*(self.buildings[2]+1)*(1.04**(0.01*self.turn)))))
+            self.build_info_cost_1.configure(text='Wood: '+str(75))
+            self.build_info_cost_2.configure(text='Iron: '+str(50))
+            self.build_info_cost_3.configure(text='Gold: '+str(int(25*(1.04**(0.01*self.turn)))))
             show = True
         if show:
             self.build_info_desc.grid(row=6,column=13,columnspan=2)
@@ -583,40 +585,40 @@ class Game:
         building = str(self.build_drop_lbl.get())
         errormsg = ''
         if building == 'Granary':
-            if self.wood < 300+50*self.buildings[0]:
+            if self.wood < 250:
                 errormsg = 'Not enough Wood!\n'
-            if self.iron < 150+50*self.buildings[0]:
+            if self.iron < 50:
                 errormsg = errormsg+'Not enough Iron!\n'
-            if self.gold < int(50+50*self.buildings[0]*(1.04**self.turn)):
+            if self.gold < int(25*(1.04**(0.01*self.turn))):
                 errormsg = errormsg+'Not enough Gold!'
             if errormsg == '':
-                self.wood = self.wood - (300+50*self.buildings[0])
-                self.iron = self.iron - (150+50*self.buildings[0])
-                self.gold = self.gold - int(50+50*self.buildings[0]*(1.04**self.turn))
+                self.wood = self.wood - (250)
+                self.iron = self.iron - (50)
+                self.gold = self.gold - int(25*(1.04**(0.01*self.turn)))
                 self.buildings[0] += 1
         elif building == 'Sawmill':
-            if self.wood < 100+50*self.buildings[1]:
+            if self.wood < 25:
                 errormsg = 'Not enough Wood!\n'
-            if self.iron < 150+50*self.buildings[1]:
+            if self.iron < 50:
                 errormsg = errormsg+'Not enough Iron!\n'
-            if self.gold < int(50+50*self.buildings[1]*(1.04**self.turn)):
+            if self.gold < int(10*(1.04**(0.01*self.turn))):
                 errormsg = errormsg+'Not enough Gold!'
             if errormsg == '':
-                self.wood = self.wood - (100+50*self.buildings[1])
-                self.iron = self.iron - (150+50*self.buildings[1])
-                self.gold = self.gold - int(50+50*self.buildings[1]*(1.04**self.turn))
+                self.wood = self.wood - (25)
+                self.iron = self.iron - (50)
+                self.gold = self.gold - int(10*(1.04**(0.01*self.turn)))
                 self.buildings[1] += 1
         elif building == 'Mine':
-            if self.wood < 400+50*self.buildings[2]:
+            if self.wood < 75:
                 errormsg = 'Not enough Wood!\n'
-            if self.iron < 200+50*self.buildings[2]:
+            if self.iron < 50:
                 errormsg = errormsg+'Not enough Iron!\n'
-            if self.gold < int(50+50*self.buildings[2]*(1.04**self.turn)):
+            if self.gold < int(25*(1.04**(0.01*self.turn))):
                 errormsg = errormsg+'Not enough Gold!'
             if errormsg == '':
-                self.wood = self.wood - (400+50*self.buildings[2])
-                self.iron = self.iron - (200+50*self.buildings[2])
-                self.gold = self.gold - int(50+50*self.buildings[2]*(1.04**self.turn))
+                self.wood = self.wood - (75)
+                self.iron = self.iron - (50)
+                self.gold = self.gold - int(25*(1.04**(0.01*self.turn)))
                 self.buildings[2] += 1
         else:
             errormsg = 'No building selected!'
@@ -650,15 +652,15 @@ class Game:
         building = self.build_list[i].cget('text')
         if building == 'Granary' and self.build_workers[i+self.blist_first]:
             self.build_workers[i+self.blist_first] = False
-            self.place_pop -= 5
-            self.pop_lbl.configure(text='Pop: '+str(self.pop)+' ('+str(self.place_pop)+')')
+##            self.place_pop -= 5
+##            self.pop_lbl.configure(text='Pop: '+str(self.pop)+' ('+str(self.place_pop)+')')
             self.build_list[i].configure(bg=self.bgcolor)
             self.build_active[0] -= 1
             self.food_slot -= 1
         elif building == 'Granary' and self.pop - self.place_pop >= 5:
             self.build_workers[i+self.blist_first] = True
-            self.place_pop += 5
-            self.pop_lbl.configure(text='Pop: '+str(self.pop)+' ('+str(self.place_pop)+')')
+##            self.place_pop += 5
+##            self.pop_lbl.configure(text='Pop: '+str(self.pop)+' ('+str(self.place_pop)+')')
             self.build_list[i].configure(bg='lightgray')
             self.build_active[0] += 1
             self.food_slot += 1
@@ -708,21 +710,21 @@ class Game:
                             self.build_list[i].grid(row=9+int(i/2),column=11,columnspan=2,sticky='SEW')
         
     def remove_workers(self):
-        mod_remove = []
-        for i in range(len(self.build_workers)): #mark sawmills & mines for deactivation (not enough population)
-            if self.build_workers[i] and self.build_all[i] != 'Granary' and self.place_pop > self.pop:
-                self.build_workers[i] = False
-                self.place_pop -= 10
-                if i >= self.blist_first and i - self.blist_first < 8:
-                    self.build_list[i-self.blist_first].configure(bg=self.bgcolor)
-                if self.build_all[i] == 'Sawmill':
-                    mod_remove.append('W')
-                    self.build_active[1] -= 1
-                else:
-                    mod_remove.append('I')
-                    self.build_active[2] -= 1
-            elif self.place_pop <= self.pop:
-                break
+##        mod_remove = []
+##        for i in range(len(self.build_workers)): #mark sawmills & mines for deactivation (not enough population)
+##            if self.build_workers[i] and self.build_all[i] != 'Granary' and self.place_pop > self.pop:
+##                self.build_workers[i] = False
+##                self.place_pop -= 10
+##                if i >= self.blist_first and i - self.blist_first < 8:
+##                    self.build_list[i-self.blist_first].configure(bg=self.bgcolor)
+##                if self.build_all[i] == 'Sawmill':
+##                    mod_remove.append('W')
+##                    self.build_active[1] -= 1
+##                else:
+##                    mod_remove.append('I')
+##                    self.build_active[2] -= 1
+##            elif self.place_pop <= self.pop:
+##                break
         for row in range(10): #remove workers from wood & iron tiles
             for col in range(10):
                 if self.worker_grid[row][col] and self.place_pop > self.pop:
@@ -732,13 +734,13 @@ class Game:
                         self.place_pop -= 1
                 elif self.place_pop <= self.pop:
                     break
-        for i in range(len(self.build_workers)): #remove workers from buildings
-            if self.build_workers[i+self.blist_first] and self.place_pop > self.pop:
-                self.build_workers[i+self.blist_first] = False
-                self.place_pop -= 5
-                self.build_list[i].configure(bg=self.bgcolor)
-            elif self.place_pop <= self.pop:
-                break
+##        for i in range(len(self.build_workers)): #remove workers from buildings
+##            if self.build_workers[i+self.blist_first] and self.place_pop > self.pop:
+##                self.build_workers[i+self.blist_first] = False
+##                self.place_pop -= 5
+##                self.build_list[i].configure(bg=self.bgcolor)
+##            elif self.place_pop <= self.pop:
+##                break
         for row in range(10): #remove workers from any still-populated tiles
             for col in range(10):
                 if self.worker_grid[row][col] and self.place_pop > self.pop:
@@ -747,29 +749,43 @@ class Game:
                     self.place_pop -= 1
                 elif self.place_pop <= self.pop:
                     break
-        for row in range(10): #remove tile modifications from buildings
-            for col in range(10):
-                rsc,mod = self.grid[row][col][2],int(self.grid[row][col][-1])
-                for i in range(2):
-                    if rsc in mod_remove and mod > 0:
-                        mod -= 1
-                        del mod_remove[mod_remove.index(rsc)]
-                self.grid[row][col] = self.grid[row][col][:-1]+str(mod)
-                if self.reveal_grid[row][col]:
-                    self.bgrid[row][col].configure(text=self.grid[row][col])
-                if mod_remove == []:
-                    break
+##        for row in range(10): #remove tile modifications from buildings
+##            for col in range(10):
+##                rsc,mod = self.grid[row][col][2],int(self.grid[row][col][-1])
+##                for i in range(2):
+##                    if rsc in mod_remove and mod > 0:
+##                        mod -= 1
+##                        del mod_remove[mod_remove.index(rsc)]
+##                self.grid[row][col] = self.grid[row][col][:-1]+str(mod)
+##                if self.reveal_grid[row][col]:
+##                    self.bgrid[row][col].configure(text=self.grid[row][col])
+##                if mod_remove == []:
+##                    break
                     
                     
                     
         self.pop_lbl.configure(text='Pop: '+str(self.pop)+' ('+str(self.place_pop)+')')
+
+    def modremove(self,resource): #removes the first mod (ltr) of the specified resource on the grid (does not remove active buildings, etc.)
+        if resource.lower() == 'iron' or resource.lower() == 'i':
+            resource = 'i'
+        elif resource.lower() == 'wood' or resource.lower() == 'w':
+            resource = 'w'
+        else:
+            resource = 'f'
         
-    def is_touching(self,points,test_coord): #points should be a list
-        return_tf = False
+        for row in range(10):
+            for col in range(10):
+                if self.grid[row][col][2] == resource and self.grid[row][col][-1] != '0':
+                    self.grid[row][col] = self.grid[row][col][:-1] + str(int(self.grid[row][col][-1]) - 1)
+                    break
+        
+    def is_touching(self,points,test_point): #points should be a list
+        boolean = False
         for pt in points:
-            if abs(test_coord[0]-pt[0]) < 2 and abs(test_coord[1]-pt[1]) < 2:
-                return_tf = True
-        return return_tf
+            if abs(test_point[0]-pt[0]) < 2 and abs(test_point[1]-pt[1]) < 2:
+                boolean = True
+        return boolean
 
     def get_rsc(self,event):
         row,col = str(event.widget)[-2],str(event.widget)[-1]
@@ -788,11 +804,11 @@ class Game:
             if self.placing:
                 self.placing = False
                 if mod + sta < 3 and self.place_pop <= self.pop - 10:
+                    self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod+1)
+                    event.widget.configure(text=str(self.grid[row][col]))
                     if rsc == 'W' and self.build_active[1] < self.buildings[1]:
-                        self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod+1)
-                        event.widget.configure(text=str(self.grid[row][col]))
                         self.build_active[1] += 1
-                        self.place_pop += 10
+##                        self.place_pop += 10
                         for i in range(len(self.build_all)):
                             if self.build_all[i] == 'Sawmill' and not self.build_workers[i]:
                                 self.build_workers[i] = True
@@ -802,10 +818,8 @@ class Game:
                             
                         self.placing = False
                     elif rsc == 'I' and self.build_active[2] < self.buildings[2]:
-                        self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod+1)
-                        event.widget.configure(text=str(self.grid[row][col]))
                         self.build_active[2] += 1
-                        self.place_pop += 10
+##                        self.place_pop += 10
                         for i in range(len(self.build_all)):
                             if self.build_all[i] == 'Mine' and not self.build_workers[i]:
                                 self.build_workers[i] = True
@@ -813,15 +827,14 @@ class Game:
                                     self.build_list[i-self.blist_first].configure(background='lightgray')
                                 break
                         self.placing = False
-                    self.pop_lbl.configure(text='Pop '+str(self.pop)+' ('+str(self.place_pop)+')')
             elif self.removing:
                 self.removing = False
                 if mod > 0:
+                    self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod-1)
+                    event.widget.configure(text=str(self.grid[row][col]))
                     if rsc == 'W':
-                        self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod-1)
-                        event.widget.configure(text=str(self.grid[row][col]))
                         self.build_active[1] -= 1
-                        self.place_pop -= 10
+##                        self.place_pop -= 10
                         for i in range(len(self.build_all)):
                             if self.build_all[i] == 'Sawmill' and self.build_workers[i]:
                                 self.build_workers[i] = False
@@ -829,10 +842,8 @@ class Game:
                                     self.build_list[i-self.blist_first].configure(background=self.bgcolor)
                                 break
                     elif rsc == 'I':
-                        self.grid[row][col] = str(self.grid[row][col])[:8]+str(mod-1)
-                        event.widget.configure(text=str(self.grid[row][col]))
                         self.build_active[2] -= 1
-                        self.place_pop -= 10
+##                        self.place_pop -= 10
                         for i in range(len(self.build_all)):
                             if self.build_all[i] == 'Mine' and self.build_workers[i]:
                                 self.build_workers[i] = False
@@ -998,6 +1009,41 @@ class Game:
         elif self.build_info_cost_1.cget('text') != '':
             self.buildinfo()
         self.turnend = False
+        for i in range(self.buildings[0]): # Granary upkeep per turn (x10 for each maintenance round, i.e., 10 turns)
+            self.building_upkeep[1] += 1 # Wood
+            self.building_upkeep[2] += 0.2 # Iron
+        for i in range(self.buildings[1]): # Sawmill upkeep
+            self.building_upkeep[1] += 0.1
+        for i in range(self.buildings[2]): # Mine upkeep
+            self.building_upkeep[2] += 0.1
+
+        self.upkeep_counter += 1
+        print(self.upkeep_counter)
+        if self.upkeep_counter == 10:
+            self.upkeep_counter = 0
+            ##-- IN PROGRESS --##
+             #remove food
+            self.wood = self.wood-int(round(self.building_upkeep[1],1))
+            while self.wood < 0 and self.buildings[1] > 0: # Removes sawmills until upkeep is affordable, or no more can be removed
+                self.buildings[1] -= 1
+                self.wood += 0.1
+                if self.buildings[1] < self.build_active[1]:
+                    self.build_active[1] -= 1
+                    self.modremove('w')
+                    
+            while self.wood < 0 and self.buildings[0] > 0: # Removes granaries until upkeep is affordable, or no more can be removed
+                self.buildings[0] -= 1
+                self.wood += 1
+                self.iron += 0.2
+
+            self.building_upkeep[1] = 0
+            
+            #self.iron = self.iron-int(round(self.building_upkeep[2],1))
+            
+            self.wood = int(self.wood)
+            self.iron = int(self.iron)
+            
+        print(self.building_upkeep)
         if self.turn > 5:
             death = float(0.01*randint(65,90))
             if randint(1,1000) == 1:
